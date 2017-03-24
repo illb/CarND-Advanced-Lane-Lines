@@ -1,0 +1,10 @@
+.DS_Store
+.idea/
+.ipynb_checkpoints/
+__pycache__/
+data/
+logs/
+debug/
+result/
+work/
+camera_calibration_corners.p
