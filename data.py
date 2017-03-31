@@ -12,8 +12,13 @@ def get_test_paths():
     return res
 
 
-def get_straight_line_paths():
+def get_straight_lines_paths():
     res = []
     for i in range(2):
-        res.append('./test_images/straight_line{}.jpg'.format(i + 1))
+        res.append('./test_images/straight_lines{}.jpg'.format(i + 1))
     return res
+
+def get_video_paths():
+    res = ["project_video.mp4", "challenge_video.mp4", "harder_challenge_video.mp4"]
+    return res
+
