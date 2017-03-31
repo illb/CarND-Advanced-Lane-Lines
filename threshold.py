@@ -59,20 +59,6 @@ def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi / 2)):
     binary_output[(dir >= thresh[0]) & (dir <= thresh[1])] = 1
     return binary_output
 
-def combine(image):
-    # Choose a Sobel kernel size
-    ksize = 3 # Choose a larger odd number to smooth gradient measurements
-
-    # Apply each of the thresholding functions
-    gradx = abs_sobel_thresh(image, orient='x', sobel_kernel=ksize, thresh=(20, 100))
-    grady = abs_sobel_thresh(image, orient='y', sobel_kernel=ksize, thresh=(20, 100))
-    mag_binary = mag_thresh(image, sobel_kernel=ksize, thresh=(30, 100))
-    dir_binary = dir_threshold(image, sobel_kernel=ksize, thresh=(0.7, 1.3))
-
-    combined = np.zeros_like(dir_binary)
-    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
-    return combined
-
 
 # Define a function that thresholds the S-channel of HLS
 # Use exclusive lower bound (>) and inclusive upper (<=)
