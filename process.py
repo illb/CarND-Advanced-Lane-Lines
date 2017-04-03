@@ -1,51 +1,49 @@
-import camera_calibration as cc
-
-######################################
-# 01) Camera Calibration
-
-objpoints, imgpoints = cc.find_corners()
-cc.save_corners(objpoints, imgpoints)
-
-######################################
-# 02) Distrotion Correction
-
-
-
-######################################
-# 03) Color & Gradient threshold
-
-
-
-######################################
-# 04) Perspective Transform
-
-
 import cv2
 import numpy as np
 import os
+
 import data
+import camera_calibration as cc
+import perspective_trasform as pt
+import threshold as th
+import lane_find as lf
 
+img_size = (1280, 720)
+output_dir = "./output_images"
+from moviepy.editor import VideoFileClip
 
-def undist(objpoints, imgpoints):
-    fnames = []
-
-    for fname in data.get_test_paths():
-        img = cv2.imread(fname)
-        dst = cc.undistort_with_corners(img, objpoints, imgpoints)
-        outname = './debug/undistorted_' + os.path.basename(fname)
-        cv2.imwrite(outname, dst)
-        print("undistort_calibration : {}".format(outname))
-
-
+######################################
+# Distrotion Correction
 objpoints, imgpoints = cc.load_corners()
-undist(objpoints, imgpoints)
+mtx, dist = cc.calibrate_camera(objpoints, imgpoints, img_size)
 
-# img = mpimg.imread('./test_images/test1.jpg')
-# undistorted = cc.undistort_with_corners(img, objpoints, imgpoints)
-# f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-# f.tight_layout()
-# ax1.imshow(img)
-# ax1.set_title('Original Image', fontsize=50)
-# ax2.imshow(undistorted)
-# ax2.set_title('Undistorted Image', fontsize=50)
-# plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
+def pipeline(img):
+    undist = cc.undistort(img, mtx, dist)
+    threshold_binary = th.combine(undist)
+
+    t = pt.Transformer((threshold_binary.shape[1], threshold_binary.shape[0]))
+    threshold_gray = th.bin2gray(threshold_binary)
+    threshold_warp = t.warp(threshold_gray)
+
+    finder = lf.LaneFinder(threshold_warp)
+    finder.find(False)
+    finder.find2(False)
+
+    undist_float = np.float64(undist)
+
+    lane_layer_warp = np.zeros_like(undist_float)
+    finder.draw_layer(lane_layer_warp)
+
+    lane_layer = t.unwarp(lane_layer_warp)
+    result = cv2.addWeighted(undist_float, 1, lane_layer, 0.5, 0)
+    finder.draw_text(result)
+    return result
+
+
+def save_movie():
+    video_path = data.get_video_paths()[0]
+    video_clip = VideoFileClip(video_path)
+    white_clip = video_clip.fl_image(pipeline)
+    white_clip.write_videofile("output_" + video_path, audio=False)
+
+save_movie()
