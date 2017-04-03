@@ -43,14 +43,6 @@ def calibrate_camera(objpoints, imgpoints, img_size):
 def undistort(img, mtx, dist):
     return cv2.undistort(img, mtx, dist, None, mtx)
 
-
-# performs the camera calibration, image distortion correction and
-# returns the undistorted image
-def undistort_with_corners(img, objpoints, imgpoints):
-    img_size = (img.shape[1], img.shape[0])
-    mtx, dist = calibrate_camera(objpoints, imgpoints, img_size)
-    return undistort(img, mtx, dist)
-
 import pickle
 
 _CORNERS_PICKLE_PATH = "camera_calibration_corners.p"

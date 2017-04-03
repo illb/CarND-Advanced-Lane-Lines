@@ -3,8 +3,6 @@ import numpy as np
 
 # Define a function that applies Sobel x or y,
 # then takes an absolute value and applies a threshold.
-# Note: calling your function with orient='x', thresh_min=5, thresh_max=100
-# should produce output like the example image shown above this quiz.
 def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -23,8 +21,7 @@ def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
     return sxbinary
 
 # Define a function that applies Sobel x and y,
-# then computes the magnitude of the gradient
-# and applies a threshold
+# then computes the magnitude of the gradient and applies a threshold
 def mag_thresh(img, sobel_kernel=3, thresh=(0, 255)):
     # Convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
@@ -71,3 +68,30 @@ def hls_select_s(img, thresh=(0, 255)):
     binary_output = np.zeros_like(s_channel)
     binary_output[(s_channel > thresh[0]) & (s_channel <= thresh[1])] = 1
     return binary_output
+
+GRADX_THRESH = (20, 100)
+GRADY_THRESH = (5, 30)
+MAG_THRESH = (50, 100)
+MAG_KERNEL = 3
+DIR_THRESH = (0.7, 1.2)
+DIR_KERNEL = 3
+GRADX_THRESH = (20, 100)
+HLS_S_THRESH = (170, 255)
+
+def combine(image):
+    # Apply each of the thresholding functions
+    gradx = abs_sobel_thresh(image, orient='x', thresh=GRADX_THRESH)
+    grady = abs_sobel_thresh(image, orient='y', thresh=GRADY_THRESH)
+    mag_binary = mag_thresh(image, sobel_kernel=MAG_KERNEL, thresh=MAG_THRESH)
+    dir_binary = dir_threshold(image, sobel_kernel=DIR_KERNEL, thresh=DIR_THRESH)
+    hls_binary = hls_select_s(image, thresh=HLS_S_THRESH)
+
+    combined = np.zeros_like(dir_binary)
+    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary == 1)] = 1
+    return combined
+
+
+def bin2gray(img):
+    result = np.zeros_like(img)
+    result[(img > 0)] = 255
+    return result
