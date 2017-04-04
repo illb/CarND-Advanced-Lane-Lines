@@ -115,9 +115,9 @@ def save_perspective_transform():
         cv2.imwrite(output_dir + '/perspective_transform_warp_' + os.path.basename(fname), warp)
 
         threshold_binary = th.combine(undist)
-        threshold_gray = th.bin2gray(threshold_binary)
-        threshold_warp = t.warp(threshold_gray)
-        cv2.imwrite(output_dir + '/perspective_transform_threshold_warp_' + os.path.basename(fname), threshold_warp)
+        threshold_warp = t.warp(threshold_binary)
+
+        cv2.imwrite(output_dir + '/perspective_transform_threshold_warp_' + os.path.basename(fname), th.bin2gray(threshold_warp))
 
 print("========= 04) Perspective Transform")
 save_perspective_transform()
@@ -126,13 +126,11 @@ save_perspective_transform()
 # 05) Find Lanes
 
 def map_lane(t, finder, img):
-    img_float = np.float64(img)
-
-    lane_layer_warp = np.zeros_like(img_float)
+    lane_layer_warp = np.zeros_like(img)
     finder.draw_layer(lane_layer_warp)
 
     lane_layer = t.unwarp(lane_layer_warp)
-    result = cv2.addWeighted(img_float, 1, lane_layer, 0.3, 0)
+    result = cv2.addWeighted(img, 1, lane_layer, 0.3, 0)
     finder.draw_text(result)
     return result
 
@@ -144,7 +142,7 @@ def save_found_lanes():
         threshold_binary = th.combine(undist)
 
         t = pt.Transformer((threshold_binary.shape[1], threshold_binary.shape[0]))
-        threshold_warp = t.warp(th.bin2gray(threshold_binary))
+        threshold_warp = t.warp(threshold_binary)
 
         finder = lf.LaneFinder(threshold_warp)
         result1 = finder.find()
