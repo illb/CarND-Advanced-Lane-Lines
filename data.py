@@ -9,13 +9,13 @@ def get_test_paths():
     res = []
     for i in range(6):
         res.append('./test_images/test{}.jpg'.format(i + 1))
-    return res
 
+    for i in range(7):
+        res.append('./test_images/hard_test{}.jpg'.format(i + 1))
 
-def get_straight_lines_paths():
-    res = []
     for i in range(2):
         res.append('./test_images/straight_lines{}.jpg'.format(i + 1))
+
     return res
 
 def get_video_paths():
