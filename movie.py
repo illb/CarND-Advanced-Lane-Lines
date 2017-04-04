@@ -23,23 +23,20 @@ def pipeline(img):
     threshold_binary = th.combine(undist)
 
     t = pt.Transformer((threshold_binary.shape[1], threshold_binary.shape[0]))
-    threshold_gray = th.bin2gray(threshold_binary)
-    threshold_warp = t.warp(threshold_gray)
+    threshold_warp = t.warp(threshold_binary)
 
     finder = lf.LaneFinder(threshold_warp)
     finder.find(False)
     finder.find2(False)
 
-    undist_float = np.float64(undist)
-
-    lane_layer_warp = np.zeros_like(undist_float)
+    lane_layer_warp = np.zeros_like(undist)
     finder.draw_layer(lane_layer_warp)
 
     lane_layer = t.unwarp(lane_layer_warp)
-    result = cv2.addWeighted(undist_float, 1, lane_layer, 0.3, 0)
+    result = cv2.addWeighted(undist, 1, lane_layer, 0.3, 0)
     finder.draw_text(result)
 
-    result = cv2.cvtColor(np.uint8(result), cv2.COLOR_BGR2RGB)
+    result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
 
     return result
 
