@@ -124,34 +124,43 @@ This resulted in the following source and destination points:
 | Source        | Destination   | 
 |:-------------:|:-------------:| 
 | 570, 454      | 160, 0        | 
-| 710, 454      | 1120, 0      |
-| 1134, 720     | 1120, 720      |
-| 146, 720      | 160, 720        |
+| 710, 454      | 1120, 0       |
+| 1134, 720     | 1120, 720     |
+| 146, 720      | 160, 720      |
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
-* blue rectangle to red rectangle 
+* src : blue rectangle
+* dst : red rectangle 
 
 ![threshold_combined](./output_images/perspective_transform_rect_test4.jpg =300x)
 
+* warped image
+
 ![threshold_combined](./output_images/perspective_transform_warp_test4.jpg =300x)
 
+* threshold filtered and warped image
+
+![threshold_combined](./output_images/perspective_transform_threshold_warp_test4.jpg =300x)
 
 ####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
 Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
 
-![alt text][image5]
+* f(y) = Ay^2 + By + C
+ * `find` function (`lane_find.py` lines 78 ~ 79)
+
+![result1](./output_images/result1_test5.jpg =300x)
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
+I did this in lines 181 ~ 188 in my code in `lane_find.py`
 
 ####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+I implemented this step in lines 128 through 137 in my code in `process.py` in the function `map_lane()`.  Here is an example of my result on a test image:
 
-![alt text][image6]
+![result4](./output_images/result4_test5.jpg =300x)
 
 ---
 
@@ -159,7 +168,7 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 
 ####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here's a [link to my video result](./project_video.mp4)
+Here's a [link to my video result](./output_project_video.mp4)
 
 ---
 
@@ -167,5 +176,25 @@ Here's a [link to my video result](./project_video.mp4)
 
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+* hard to find lanes scenes
+  * shadowed road
+  
+![hard_test](./test_images/hard_test1.jpg =300x)  
 
+  * 2 colors of road
+
+![hard_test](./test_images/hard_test4.jpg =300x)  
+  
+  * partly covered road
+
+![hard_test](./test_images/hard_test6.jpg =300x)  
+
+  * too bright road
+
+![hard_test](./test_images/hard_test7.jpg =300x)  
+
+* a few ways improvement:
+  * more than two polynomials are needed for more than two bends
+  * find lines by referring to previous scenes
+  * use deep learning for object (car / bike) detection
+  
