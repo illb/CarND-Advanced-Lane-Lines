@@ -106,21 +106,36 @@ def save_perspective_transform():
     for fname in data.get_test_paths():
         img = cv2.imread(fname)
         undist = cc.undistort(img, mtx, dist)
-        threshold_binary = th.combine(undist)
 
-        t = pt.Transformer((threshold_binary.shape[1], threshold_binary.shape[0]))
-        threshold_gray = th.bin2gray(threshold_binary)
-        threshold_warp = t.warp(threshold_gray)
-
+        t = pt.Transformer((undist.shape[1], undist.shape[0]))
         perspective_rect = draw_perspective_transform_rect(t, undist)
         cv2.imwrite(output_dir + '/perspective_transform_rect_' + os.path.basename(fname), perspective_rect)
-        cv2.imwrite(output_dir + '/perspective_transform_warp_' + os.path.basename(fname), threshold_warp)
+
+        warp = t.warp(undist)
+        cv2.imwrite(output_dir + '/perspective_transform_warp_' + os.path.basename(fname), warp)
+
+        threshold_binary = th.combine(undist)
+        threshold_gray = th.bin2gray(threshold_binary)
+        threshold_warp = t.warp(threshold_gray)
+        cv2.imwrite(output_dir + '/perspective_transform_threshold_warp_' + os.path.basename(fname), threshold_warp)
 
 print("========= 04) Perspective Transform")
 save_perspective_transform()
 
 ######################################
 # 05) Find Lanes
+
+def map_lane(t, finder, img):
+    img_float = np.float64(img)
+
+    lane_layer_warp = np.zeros_like(img_float)
+    finder.draw_layer(lane_layer_warp)
+
+    lane_layer = t.unwarp(lane_layer_warp)
+    result = cv2.addWeighted(img_float, 1, lane_layer, 0.3, 0)
+    finder.draw_text(result)
+    return result
+
 
 def save_found_lanes():
     for fname in data.get_test_paths():
@@ -132,21 +147,17 @@ def save_found_lanes():
         threshold_warp = t.warp(th.bin2gray(threshold_binary))
 
         finder = lf.LaneFinder(threshold_warp)
-        found1 = finder.find()
-        cv2.imwrite(output_dir + '/result1_' + os.path.basename(fname), found1)
-        found2 = finder.find2()
-        cv2.imwrite(output_dir + '/result2_' + os.path.basename(fname), found2)
+        result1 = finder.find()
+        cv2.imwrite(output_dir + '/result1_' + os.path.basename(fname), result1)
+        result2 = finder.find2()
+        cv2.imwrite(output_dir + '/result2_' + os.path.basename(fname), result2)
 
-        lane_layer_warp = np.zeros_like(found1)
-        finder.draw_layer(lane_layer_warp)
+        lane_layer = np.zeros_like(result1)
+        finder.draw_layer(lane_layer)
+        result3 = cv2.addWeighted(result1, 1, lane_layer, 0.3, 0)
+        cv2.imwrite(output_dir + '/result3_' + os.path.basename(fname), result3)
 
-        found3 = cv2.addWeighted(found1, 1, lane_layer_warp, 0.5, 0)
-
-        cv2.imwrite(output_dir + '/result3_' + os.path.basename(fname), found3)
-
-        lane_layer = t.unwarp(lane_layer_warp)
-        result4 = cv2.addWeighted(np.float64(undist), 1, lane_layer, 0.5, 0)
-        finder.draw_text(result4)
+        result4 = map_lane(t, finder, undist)
         cv2.imwrite(output_dir + '/result4_' + os.path.basename(fname), result4)
 
 print("========= 05) Find Lanes")
