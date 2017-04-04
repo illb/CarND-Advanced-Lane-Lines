@@ -69,13 +69,12 @@ def hls_select_s(img, thresh=(0, 255)):
     binary_output[(s_channel > thresh[0]) & (s_channel <= thresh[1])] = 1
     return binary_output
 
-GRADX_THRESH = (20, 100)
-GRADY_THRESH = (5, 30)
+GRADX_THRESH = (20, 120)
+GRADY_THRESH = (60, 110)
 MAG_THRESH = (50, 100)
 MAG_KERNEL = 3
 DIR_THRESH = (0.7, 1.2)
 DIR_KERNEL = 3
-GRADX_THRESH = (20, 100)
 HLS_S_THRESH = (170, 255)
 
 def combine(image):
