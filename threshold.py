@@ -85,7 +85,7 @@ def combine(image):
     dir_binary = dir_threshold(image, sobel_kernel=DIR_KERNEL, thresh=DIR_THRESH)
     hls_binary = hls_select_s(image, thresh=HLS_S_THRESH)
 
-    combined = np.zeros_like(dir_binary)
+    combined = np.zeros_like(gradx)
     combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary == 1)] = 1
     return combined
 
