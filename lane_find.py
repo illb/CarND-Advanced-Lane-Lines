@@ -5,20 +5,69 @@ class LaneFinder:
     def __init__(self, binary_warped):
         self.binary_warped = binary_warped
 
-    def find(self, debug=True):
+        self.has_last = False
+        self.leftx_base = None
+        self.lefty_base = None
+
+    def _norm_histogram(self, x, center):
+        from scipy.stats import norm
+        sigma = 20.0
+        dist = norm(center, sigma)
+        res = dist.pdf(x) * 6000.0
+        return res.reshape(x.shape[0])
+
+    def find_base(self, debug=True):
         binary_warped = self.binary_warped
         # Assuming you have created a warped binary image called "binary_warped"
         # Take a histogram of the bottom half of the image
-        histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
+        histogram = np.int64(np.sum(binary_warped[binary_warped.shape[0] // 2:, :], axis=0))
+        # Find the peak of the left and right halves of the histogram
+        # These will be the starting point for the left and right lines
+        midpoint = np.int(histogram.shape[0] / 2)
+
+        w, h = binary_warped.shape[1], binary_warped.shape[0]
+        x = np.arange(0, w).reshape(w, 1)
+        if self.has_last:
+            n1 = np.int64(self._norm_histogram(x, self.leftx_base))
+            n2 = np.int64(self._norm_histogram(x, self.rightx_base))
+            histogram = histogram + n1 + n2
+
         out_img = None
         if debug:
             # Create an output image to draw on and  visualize the result
             out_img = np.dstack((binary_warped, binary_warped, binary_warped))*255
-        # Find the peak of the left and right halves of the histogram
-        # These will be the starting point for the left and right lines
-        midpoint = np.int(histogram.shape[0]/2)
-        leftx_base = np.argmax(histogram[:midpoint])
-        rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+
+            # draw the histogram of bottom half with red
+            y = h - histogram.reshape(w, 1)
+            pts = np.concatenate((x, y), axis=1)
+            cv2.polylines(out_img, np.int32([pts]), False, (0, 0, 255), 6)
+
+            if self.has_last:
+                y = (h - n1.reshape(w, 1))
+                pts = np.concatenate((x, y), axis=1)
+                cv2.polylines(out_img, np.int32([pts]), False, (255, 0, 0), 6)
+
+                y = (h - n2.reshape(w, 1))
+                pts = np.concatenate((x, y), axis=1)
+                cv2.polylines(out_img, np.int32([pts]), False, (255, 0, 0), 6)
+
+                sum = histogram + n1 + n2
+                y = (h - sum).reshape(w, 1)
+                pts = np.concatenate((x, y), axis=1)
+                cv2.polylines(out_img, np.int32([pts]), False, (0, 255, 0), 6)
+
+        self.has_last = True
+        self.leftx_base = np.argmax(histogram[:midpoint])
+        self.rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+
+        return out_img
+
+
+    def find(self, debug=True):
+        self.find_base(False)
+
+        # Assuming you have created a warped binary image called "binary_warped"
+        binary_warped = self.binary_warped
 
         # Choose the number of sliding windows
         nwindows = 9
@@ -29,8 +78,8 @@ class LaneFinder:
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
         # Current positions to be updated for each window
-        leftx_current = leftx_base
-        rightx_current = rightx_base
+        leftx_current = self.leftx_base
+        rightx_current = self.rightx_base
         # Set the width of the windows +/- margin
         margin = 100
         # Set minimum number of pixels found to recenter window
@@ -38,6 +87,11 @@ class LaneFinder:
         # Create empty lists to receive left and right lane pixel indices
         left_lane_inds = []
         right_lane_inds = []
+
+        out_img = None
+        if debug:
+            # Create an output image to draw on and  visualize the result
+            out_img = np.dstack((binary_warped, binary_warped, binary_warped))*255
 
         # Step through the windows one by one
         for window in range(nwindows):
@@ -115,7 +169,7 @@ class LaneFinder:
         nonzero = binary_warped.nonzero()
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
-        margin = 100
+        margin = 90
         left_lane_inds = (
         (nonzerox > (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] - margin)) & (
             nonzerox < (left_fit[0] * (nonzeroy ** 2) + left_fit[1] * nonzeroy + left_fit[2] + margin)))
@@ -147,16 +201,16 @@ class LaneFinder:
             out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
             out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
 
-        # Generate a polygon to illustrate the search window area
-        # And recast the x and y points into usable format for cv2.fillPoly()
-        left_line_window1 = np.array([np.transpose(np.vstack([left_fitx - margin, ploty]))])
-        left_line_window2 = np.array([np.flipud(np.transpose(np.vstack([left_fitx + margin, ploty])))])
-        left_line_pts = np.hstack((left_line_window1, left_line_window2))
-        right_line_window1 = np.array([np.transpose(np.vstack([right_fitx - margin, ploty]))])
-        right_line_window2 = np.array([np.flipud(np.transpose(np.vstack([right_fitx + margin, ploty])))])
-        right_line_pts = np.hstack((right_line_window1, right_line_window2))
-
         if debug:
+            # Generate a polygon to illustrate the search window area
+            # And recast the x and y points into usable format for cv2.fillPoly()
+            left_line_window1 = np.array([np.transpose(np.vstack([left_fitx - margin, ploty]))])
+            left_line_window2 = np.array([np.flipud(np.transpose(np.vstack([left_fitx + margin, ploty])))])
+            left_line_pts = np.hstack((left_line_window1, left_line_window2))
+            right_line_window1 = np.array([np.transpose(np.vstack([right_fitx - margin, ploty]))])
+            right_line_window2 = np.array([np.flipud(np.transpose(np.vstack([right_fitx + margin, ploty])))])
+            right_line_pts = np.hstack((right_line_window1, right_line_window2))
+
             # Draw the lane onto the warped blank image
             cv2.fillPoly(window_img, np.int_([left_line_pts]), (0, 255, 0))
             cv2.fillPoly(window_img, np.int_([right_line_pts]), (0, 255, 0))
