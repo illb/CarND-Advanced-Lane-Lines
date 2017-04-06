@@ -85,7 +85,7 @@ class LaneFinder:
         binary_warped = self.binary_warped
 
         # Choose the number of sliding windows
-        nwindows = 8
+        nwindows = 6
         # Set height of windows
         window_height = np.int(binary_warped.shape[0]/nwindows)
         # Identify the x and y positions of all nonzero pixels in the image
