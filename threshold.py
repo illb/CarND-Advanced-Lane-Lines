@@ -75,7 +75,8 @@ MAG_THRESH = (30, 100)
 MAG_KERNEL = 9
 DIR_THRESH = (0.7, 1.2)
 DIR_KERNEL = 11
-HLS_S_THRESH = (170, 235)
+HLS_S_THRESH1 = (200, 245)
+HLS_S_THRESH2 = (110, 140)
 
 def combine(image):
     # Apply each of the thresholding functions
@@ -83,10 +84,11 @@ def combine(image):
     grady = abs_sobel_thresh(image, orient='y', thresh=GRADY_THRESH)
     mag_binary = mag_thresh(image, sobel_kernel=MAG_KERNEL, thresh=MAG_THRESH)
     dir_binary = dir_threshold(image, sobel_kernel=DIR_KERNEL, thresh=DIR_THRESH)
-    hls_binary = hls_select_s(image, thresh=HLS_S_THRESH)
+    hls_binary1 = hls_select_s(image, thresh=HLS_S_THRESH1)
+    hls_binary2 = hls_select_s(image, thresh=HLS_S_THRESH2)
 
     combined = np.zeros_like(gradx)
-    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary == 1)] = 1
+    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary1 == 1) | (hls_binary2 == 1)] = 1
     return combined
 
 
