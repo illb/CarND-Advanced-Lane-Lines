@@ -27,10 +27,10 @@ def save_chessboard_corners():
 
 
 print("========= 01) Camera Calibration")
-# objpoints, imgpoints = cc.find_corners()
-# cc.save_corners(objpoints, imgpoints)
+objpoints, imgpoints = cc.find_corners()
+cc.save_corners(objpoints, imgpoints)
 
-# save_chessboard_corners()
+save_chessboard_corners()
 
 ######################################
 # 02) Distrotion Correction
@@ -48,7 +48,7 @@ def save_undistorted(mtx, dist):
 print("========= 02) Distrotion Correction")
 objpoints, imgpoints = cc.load_corners()
 mtx, dist = cc.calibrate_camera(objpoints, imgpoints, img_size)
-# save_undistorted(mtx, dist)
+save_undistorted(mtx, dist)
 
 ######################################
 # 03) Color & Gradient threshold
@@ -147,7 +147,7 @@ def save_found_lanes():
         t = pt.Transformer((threshold_binary.shape[1], threshold_binary.shape[0]))
         threshold_warp = t.warp(threshold_binary)
 
-        finder = lf.LaneFinder(threshold_warp)
+        finder = lf.LaneFinder()
         finder.set_new_frame(threshold_warp)
         finder.find_base(False)
         # result0 = finder.find_base()
