@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+import threshold as th
 
 class LaneFinder:
     def __init__(self, binary_warped):
@@ -11,9 +12,9 @@ class LaneFinder:
 
     def _norm_histogram(self, x, center):
         from scipy.stats import norm
-        sigma = 20.0
+        sigma = 40.0
         dist = norm(center, sigma)
-        res = dist.pdf(x) * 6000.0
+        res = dist.pdf(x) * 20.0
         return res.reshape(x.shape[0])
 
     def find_base(self, debug=True):
@@ -30,7 +31,7 @@ class LaneFinder:
         if self.has_last:
             n1 = np.int64(self._norm_histogram(x, self.leftx_base))
             n2 = np.int64(self._norm_histogram(x, self.rightx_base))
-            histogram = histogram + n1 + n2
+            histogram = histogram * (n1 + n2)
 
         out_img = None
         if debug:
@@ -51,7 +52,7 @@ class LaneFinder:
                 pts = np.concatenate((x, y), axis=1)
                 cv2.polylines(out_img, np.int32([pts]), False, (255, 0, 0), 6)
 
-                sum = histogram + n1 + n2
+                sum = histogram * (n1 + n2)
                 y = (h - sum).reshape(w, 1)
                 pts = np.concatenate((x, y), axis=1)
                 cv2.polylines(out_img, np.int32([pts]), False, (0, 255, 0), 6)
