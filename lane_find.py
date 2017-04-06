@@ -1,37 +1,53 @@
 import numpy as np
 import cv2
-import threshold as th
 
 class LaneFinder:
-    def __init__(self, binary_warped):
-        self.binary_warped = binary_warped
-
+    def __init__(self):
         self.has_last = False
         self.leftx_base = None
         self.lefty_base = None
+
+    def set_new_frame(self, binary_warped):
+        self.binary_warped = binary_warped
 
     def _norm_histogram(self, x, center):
         from scipy.stats import norm
         sigma = 40.0
         dist = norm(center, sigma)
-        res = dist.pdf(x) * 20.0
+        res = dist.pdf(x) * 300.0
         return res.reshape(x.shape[0])
+
+    def _is_valid_lane_width(self, witdh_pixels):
+        return (witdh_pixels > 630) & (witdh_pixels < 1010)
 
     def find_base(self, debug=True):
         binary_warped = self.binary_warped
+        w, h = binary_warped.shape[1], binary_warped.shape[0]
         # Assuming you have created a warped binary image called "binary_warped"
         # Take a histogram of the bottom half of the image
-        histogram = np.int64(np.sum(binary_warped[binary_warped.shape[0] // 2:, :], axis=0))
+        histogram = np.int64(np.sum(binary_warped[h // 2:, :], axis=0))
         # Find the peak of the left and right halves of the histogram
         # These will be the starting point for the left and right lines
         midpoint = np.int(histogram.shape[0] / 2)
 
-        w, h = binary_warped.shape[1], binary_warped.shape[0]
         x = np.arange(0, w).reshape(w, 1)
+        use_last_frame = False
         if self.has_last:
-            n1 = np.int64(self._norm_histogram(x, self.leftx_base))
-            n2 = np.int64(self._norm_histogram(x, self.rightx_base))
-            histogram = histogram * (n1 + n2)
+            left_norm = np.int64(self._norm_histogram(x, self.leftx_base))
+            right_norm = np.int64(self._norm_histogram(x, self.rightx_base))
+            new_histogram = histogram * (left_norm + right_norm)
+            left = np.argmax(new_histogram[:midpoint])
+            right = np.argmax(new_histogram[midpoint:]) + midpoint
+            width = right - left
+            if self._is_valid_lane_width(width):
+                histogram = new_histogram
+                use_last_frame = True
+            else:
+                print("cannot use last base points: width={}".format(width))
+
+        self.has_last = True
+        self.leftx_base = np.argmax(histogram[:midpoint])
+        self.rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
         out_img = None
         if debug:
@@ -43,35 +59,33 @@ class LaneFinder:
             pts = np.concatenate((x, y), axis=1)
             cv2.polylines(out_img, np.int32([pts]), False, (0, 0, 255), 6)
 
-            if self.has_last:
-                y = (h - n1.reshape(w, 1))
+            if use_last_frame:
+                # draw the left base normal distribution with blue
+                y = (h - left_norm.reshape(w, 1))
                 pts = np.concatenate((x, y), axis=1)
                 cv2.polylines(out_img, np.int32([pts]), False, (255, 0, 0), 6)
 
-                y = (h - n2.reshape(w, 1))
+                # draw the right base normal distribution with blue
+                y = (h - right_norm.reshape(w, 1))
                 pts = np.concatenate((x, y), axis=1)
                 cv2.polylines(out_img, np.int32([pts]), False, (255, 0, 0), 6)
 
-                sum = histogram * (n1 + n2)
-                y = (h - sum).reshape(w, 1)
+                multi = histogram * (left_norm + right_norm)
+                y = (h - multi).reshape(w, 1)
                 pts = np.concatenate((x, y), axis=1)
                 cv2.polylines(out_img, np.int32([pts]), False, (0, 255, 0), 6)
-
-        self.has_last = True
-        self.leftx_base = np.argmax(histogram[:midpoint])
-        self.rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
         return out_img
 
 
-    def find(self, debug=True):
+    def find_step1(self, debug=True):
         self.find_base(False)
 
         # Assuming you have created a warped binary image called "binary_warped"
         binary_warped = self.binary_warped
 
         # Choose the number of sliding windows
-        nwindows = 9
+        nwindows = 6
         # Set height of windows
         window_height = np.int(binary_warped.shape[0]/nwindows)
         # Identify the x and y positions of all nonzero pixels in the image
@@ -82,9 +96,9 @@ class LaneFinder:
         leftx_current = self.leftx_base
         rightx_current = self.rightx_base
         # Set the width of the windows +/- margin
-        margin = 100
+        margin = 70
         # Set minimum number of pixels found to recenter window
-        minpix = 50
+        minpix = 40
         # Create empty lists to receive left and right lane pixel indices
         left_lane_inds = []
         right_lane_inds = []
@@ -160,7 +174,7 @@ class LaneFinder:
 
         return out_img
 
-    def find2(self, debug=True):
+    def find_step2(self, debug=True):
         binary_warped = self.binary_warped
         left_fit = self.left_fit
         right_fit = self.right_fit
@@ -253,8 +267,8 @@ class LaneFinder:
         pts = np.append(left_pts, right_pts, axis=0)
 
         cv2.fillPoly(img, np.int32([pts]), (0, 255, 255))
-        cv2.polylines(img, np.int32([left_pts]), False, (255, 0, 0), 8)
-        cv2.polylines(img, np.int32([right_pts]), False, (0, 0, 255), 8)
+        cv2.polylines(img, np.int32([left_pts]), False, (0, 255, 255), 10)
+        cv2.polylines(img, np.int32([right_pts]), False, (0, 255, 255), 10)
 
 
     def draw_text(self, img):

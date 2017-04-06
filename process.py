@@ -78,8 +78,11 @@ def save_threshold():
         md_binary[(mag_binary == 1) & (dir_binary == 1)] = 1
         cv2.imwrite(output_dir + '/threshold_magdir_' + os.path.basename(fname), th.bin2gray(md_binary))
 
-        hls_binary = th.hls_select_s(undist, thresh=th.HLS_S_THRESH)
-        cv2.imwrite(output_dir + '/threshold_hls_s_' + os.path.basename(fname), th.bin2gray(hls_binary))
+        hls_binary1 = th.hls_select_s(undist, thresh=th.HLS_S_THRESH1)
+        cv2.imwrite(output_dir + '/threshold_hls_s_' + os.path.basename(fname), th.bin2gray(hls_binary1))
+
+        hls_binary2 = th.hls_select_s(undist, thresh=th.HLS_S_THRESH2)
+        cv2.imwrite(output_dir + '/threshold_hls_s2_' + os.path.basename(fname), th.bin2gray(hls_binary2))
 
         combined_binary = th.combine(undist)
         cv2.imwrite(output_dir + '/threshold_combined_' + os.path.basename(fname), th.bin2gray(combined_binary))
@@ -145,12 +148,14 @@ def save_found_lanes():
         threshold_warp = t.warp(threshold_binary)
 
         finder = lf.LaneFinder(threshold_warp)
+        finder.set_new_frame(threshold_warp)
+        finder.find_base(False)
         # result0 = finder.find_base()
         # cv2.imwrite(output_dir + '/result0_' + os.path.basename(fname), result0)
 
-        result1 = finder.find()
+        result1 = finder.find_step1()
         cv2.imwrite(output_dir + '/result1_' + os.path.basename(fname), result1)
-        result2 = finder.find2()
+        result2 = finder.find_step2()
         cv2.imwrite(output_dir + '/result2_' + os.path.basename(fname), result2)
 
         lane_layer = np.zeros_like(result1)

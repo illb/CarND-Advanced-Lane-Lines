@@ -16,6 +16,8 @@ from moviepy.editor import VideoFileClip
 objpoints, imgpoints = cc.load_corners()
 mtx, dist = cc.calibrate_camera(objpoints, imgpoints, img_size)
 
+finder = lf.LaneFinder()
+
 def pipeline(img):
     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
@@ -25,9 +27,10 @@ def pipeline(img):
     t = pt.Transformer((threshold_binary.shape[1], threshold_binary.shape[0]))
     threshold_warp = t.warp(threshold_binary)
 
-    finder = lf.LaneFinder(threshold_warp)
-    finder.find(False)
-    finder.find2(False)
+    finder.set_new_frame(threshold_warp)
+    finder.find_base(False)
+    finder.find_step1(False)
+    finder.find_step2(False)
 
     lane_layer_warp = np.zeros_like(undist)
     finder.draw_layer(lane_layer_warp)
