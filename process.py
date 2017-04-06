@@ -145,8 +145,8 @@ def save_found_lanes():
         threshold_warp = t.warp(threshold_binary)
 
         finder = lf.LaneFinder(threshold_warp)
-        result0 = finder.find_base()
-        cv2.imwrite(output_dir + '/result0_' + os.path.basename(fname), result0)
+        # result0 = finder.find_base()
+        # cv2.imwrite(output_dir + '/result0_' + os.path.basename(fname), result0)
 
         result1 = finder.find()
         cv2.imwrite(output_dir + '/result1_' + os.path.basename(fname), result1)
