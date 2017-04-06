@@ -62,7 +62,7 @@ You're reading it!
 ####1. Provide an example of a distortion-corrected image.
 To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
 
-![pipeline_undist](./output_images/undistorted_test4.jpg =300x)
+![pipeline_undist](./output_images/undistorted_test3.jpg =300x)
 
 ####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
@@ -73,40 +73,40 @@ To demonstrate this step, I will describe how I apply the distortion correction 
 * sobel x, y
   * `abs_sobel_thresh` function (lines 6 ~ 21) 
 
-![threshold_gradx](./output_images/threshold_gradx_test4.jpg =300x)
-![threshold_grady](./output_images/threshold_grady_test4.jpg =300x)
+![threshold_gradx](./output_images/threshold_gradx_test3.jpg =300x)
+![threshold_grady](./output_images/threshold_grady_test3.jpg =300x)
 
 * sobel x and y
   * `(gradx == 1) & (grady == 1)` (line 91)
 
-![threshold_gradxy](./output_images/threshold_gradxy_test4.jpg =300x)
+![threshold_gradxy](./output_images/threshold_gradxy_test3.jpg =300x)
 
 * magnitude of the gradient
   * `mag_thresh` function (lines 25 ~ 39)
   
-![threshold_mag](./output_images/threshold_mag_test4.jpg =300x)
+![threshold_mag](./output_images/threshold_mag_test3.jpg =300x)
 
 * direction of the gradient
   * `dir_threshold` function (lines 45 ~ 57)
 
-![threshold_dir](./output_images/threshold_dir_test4.jpg =300x)
+![threshold_dir](./output_images/threshold_dir_test3.jpg =300x)
 
 * magnitude of the gradient and direction of the gradient
   * `(mag_binary == 1) & (dir_binary == 1)` (line 90)
 
-![threshold_magdir](./output_images/threshold_magdir_test4.jpg =300x)
+![threshold_magdir](./output_images/threshold_magdir_test3.jpg =300x)
 
 * thresholds the S-channel of HLS
   * `hls_select_s` function (lines 62 ~ 70)
 
-![threshold_hls_s](./output_images/threshold_hls_s_test4.jpg =300x)
+![threshold_hls_s](./output_images/threshold_hls_s_test3.jpg =300x)
 
-![threshold_hls_s](./output_images/threshold_hls_s2_test4.jpg =300x)
+![threshold_hls_s](./output_images/threshold_hls_s2_test3.jpg =300x)
 
 * combined result
   * `((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary1 == 1) | (hls_binary2 == 1)` (line 91)
 
-![threshold_combined](./output_images/threshold_combined_test4.jpg =300x)
+![threshold_combined](./output_images/threshold_combined_test3.jpg =300x)
 
 
 ####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
@@ -143,15 +143,15 @@ I verified that my perspective transform was working as expected by drawing the 
 * src : blue rectangle
 * dst : red rectangle 
 
-![threshold_combined](./output_images/perspective_transform_rect_test4.jpg =300x)
+![threshold_combined](./output_images/perspective_transform_rect_test3.jpg =300x)
 
 * warped image
 
-![threshold_combined](./output_images/perspective_transform_warp_test4.jpg =300x)
+![threshold_combined](./output_images/perspective_transform_warp_test3.jpg =300x)
 
 * threshold filtered and warped image
 
-![threshold_combined](./output_images/perspective_transform_threshold_warp_test4.jpg =300x)
+![threshold_combined](./output_images/perspective_transform_threshold_warp_test3.jpg =300x)
 
 ####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
@@ -173,7 +173,7 @@ new_histogram = histogram * (left_norm + right_norm)
 * f(y) = Ay^2 + By + C
   * `find_step1` function (`lane_find.py` lines 147 ~ 148)
 
-![result1](./output_images/result1_test4.jpg =300x)
+![result1](./output_images/result1_test3.jpg =300x)
 
 * Find the line again for the area you just gave the 2nd order polynomial line.
   * `find_step2` function (`lane_find.py` lines 177 ~ 259)
@@ -187,7 +187,7 @@ I did this in lines 241 ~ 257 in my code in `lane_find.py`
 
 I implemented this step in lines 131 through 138 in my code in `process.py` in the function `map_lane()`.  Here is an example of my result on a test image:
 
-![result4](./output_images/result4_test4.jpg =300x)
+![result4](./output_images/result4_test3.jpg =300x)
 
 ---
 
@@ -204,10 +204,6 @@ Here's a [link to my video result](./output_project_video.mp4)
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 * hard to find lanes scenes
-  * gray road
-  
-![hard_test](./test_images/hard_test1.jpg =300x)  
-
   * shadowed road
   
 ![hard_test](./test_images/hard_test2.jpg =300x)  
