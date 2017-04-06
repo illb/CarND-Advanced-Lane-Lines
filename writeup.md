@@ -18,9 +18,6 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./output_images/undistort_output.jpg "Undistorted"
-[video1]: ./project_video.mp4 "Video"
-
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 ###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
@@ -30,6 +27,17 @@ The goals / steps of this project are the following:
 ####1. Provide a Writeup that includes all the rubric points and how you addressed each one.
 
 You're reading it!
+
+###Source Files
+* debug.py : sandbox for debugging
+* process.py : full pipeline process
+* movie.py : make the output video
+* modules
+  * data.py : data list functions
+  * camera_calibration.py : camera calibration functions
+  * threshold.py : threshold filter functions
+  * perspective_transform.py : perspective transform class
+  * lane_find.py : lane find class
 
 ###Camera Calibration
 
@@ -69,7 +77,7 @@ To demonstrate this step, I will describe how I apply the distortion correction 
 ![threshold_grady](./output_images/threshold_grady_test4.jpg =300x)
 
 * sobel x and y
-  * `(gradx == 1) & (grady == 1)` (line 90)
+  * `(gradx == 1) & (grady == 1)` (line 91)
 
 ![threshold_gradxy](./output_images/threshold_gradxy_test4.jpg =300x)
 
@@ -93,8 +101,10 @@ To demonstrate this step, I will describe how I apply the distortion correction 
 
 ![threshold_hls_s](./output_images/threshold_hls_s_test4.jpg =300x)
 
+![threshold_hls_s](./output_images/threshold_hls_s2_test4.jpg =300x)
+
 * combined result
-  * `((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary == 1)` (line 90)
+  * `((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary1 == 1) | (hls_binary2 == 1)` (line 91)
 
 ![threshold_combined](./output_images/threshold_combined_test4.jpg =300x)
 
@@ -145,22 +155,39 @@ I verified that my perspective transform was working as expected by drawing the 
 
 ####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+* Find the peak of the left and right halves of the histogram. these will be the starting point for the left and right lines
+  * `find_base` function (`lane_find.py` lines 23 ~ 78)
+
+* If there are starting points found in the previous screen, weights the starting points.
+The weights are in the form of normal distributions.
+
+```
+left_norm = np.int64(self._norm_histogram(x, self.leftx_base))
+right_norm = np.int64(self._norm_histogram(x, self.rightx_base))
+new_histogram = histogram * (left_norm + right_norm)
+
+```
+
+* Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
 
 * f(y) = Ay^2 + By + C
- * `find` function (`lane_find.py` lines 78 ~ 79)
+  * `find_step1` function (`lane_find.py` lines 147 ~ 148)
 
-![result1](./output_images/result1_test5.jpg =300x)
+![result1](./output_images/result1_test4.jpg =300x)
+
+* Find the line again for the area you just gave the 2nd order polynomial line.
+  * `find_step2` function (`lane_find.py` lines 177 ~ 259)
+
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines 181 ~ 188 in my code in `lane_find.py`
+I did this in lines 241 ~ 257 in my code in `lane_find.py`
 
 ####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines 128 through 137 in my code in `process.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+I implemented this step in lines 131 through 138 in my code in `process.py` in the function `map_lane()`.  Here is an example of my result on a test image:
 
-![result4](./output_images/result4_test5.jpg =300x)
+![result4](./output_images/result4_test4.jpg =300x)
 
 ---
 
@@ -177,9 +204,13 @@ Here's a [link to my video result](./output_project_video.mp4)
 ####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 * hard to find lanes scenes
-  * shadowed road
+  * gray road
   
 ![hard_test](./test_images/hard_test1.jpg =300x)  
+
+  * shadowed road
+  
+![hard_test](./test_images/hard_test2.jpg =300x)  
 
   * 2 colors of road
 
@@ -195,6 +226,5 @@ Here's a [link to my video result](./output_project_video.mp4)
 
 * a few ways improvement:
   * more than two polynomials are needed for more than two bends
-  * find lines by referring to previous scenes
   * use deep learning for object (car / bike) detection
   
