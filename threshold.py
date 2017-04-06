@@ -74,8 +74,8 @@ GRADY_THRESH = (60, 110)
 MAG_THRESH = (30, 100)
 MAG_KERNEL = 9
 DIR_THRESH = (0.7, 1.2)
-DIR_KERNEL = 15
-HLS_S_THRESH = (180, 235)
+DIR_KERNEL = 11
+HLS_S_THRESH = (170, 235)
 
 def combine(image):
     # Apply each of the thresholding functions
