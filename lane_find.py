@@ -96,7 +96,7 @@ class LaneFinder:
         leftx_current = self.leftx_base
         rightx_current = self.rightx_base
         # Set the width of the windows +/- margin
-        margin = 80
+        margin = 90
         # Set minimum number of pixels found to recenter window
         minpix = 40
         # Create empty lists to receive left and right lane pixel indices
