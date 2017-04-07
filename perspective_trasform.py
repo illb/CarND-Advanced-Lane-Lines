@@ -10,7 +10,7 @@ class Transformer:
         w, h = img_size
 
         src_top_margin = h // 2 + 94
-        src_upper_left_right_margin = 570
+        src_upper_left_right_margin = 582
         src_lower_left_right_margin = 146
 
         dst_left_right_margin = 160
