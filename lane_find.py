@@ -18,7 +18,7 @@ class LaneFinder:
         return res.reshape(x.shape[0])
 
     def _is_valid_lane_width(self, witdh_pixels):
-        return (witdh_pixels > 630) & (witdh_pixels < 1010)
+        return (witdh_pixels > 540) & (witdh_pixels < 1030)
 
     def find_base(self, debug=True):
         binary_warped = self.binary_warped
@@ -79,13 +79,11 @@ class LaneFinder:
 
 
     def find_step1(self, debug=True):
-        self.find_base(False)
-
         # Assuming you have created a warped binary image called "binary_warped"
         binary_warped = self.binary_warped
 
         # Choose the number of sliding windows
-        nwindows = 16
+        nwindows = 12
         # Set height of windows
         window_height = np.int(binary_warped.shape[0]/nwindows)
         # Identify the x and y positions of all nonzero pixels in the image
@@ -98,7 +96,7 @@ class LaneFinder:
         # Set the width of the windows +/- margin
         margin = 100
         # Set minimum number of pixels found to recenter window
-        minpix = 40
+        minpix = 80
         # Create empty lists to receive left and right lane pixel indices
         left_lane_inds = []
         right_lane_inds = []
