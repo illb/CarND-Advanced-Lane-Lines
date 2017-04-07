@@ -5,7 +5,7 @@ import numpy as np
 # then takes an absolute value and applies a threshold.
 def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
     # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # Take the absolute value of the derivative or gradient
     abs_sobel = None
     if orient == 'x':
@@ -24,7 +24,7 @@ def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
 # then computes the magnitude of the gradient and applies a threshold
 def mag_thresh(img, sobel_kernel=3, thresh=(0, 255)):
     # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # Take the gradient in x and y separately
     sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
     sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
@@ -44,7 +44,7 @@ def mag_thresh(img, sobel_kernel=3, thresh=(0, 255)):
 # and applies a threshold.
 def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi / 2)):
     # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # Take the gradient in x and y separately
     sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
     sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
@@ -57,16 +57,15 @@ def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi / 2)):
     return binary_output
 
 
-# Define a function that thresholds the S-channel of HLS
-# Use exclusive lower bound (>) and inclusive upper (<=)
-def hls_select_s(img, thresh=(0, 255)):
+def hls_select(img, h_thresh=(0, 255), l_thresh=(0, 255), s_thresh=(0, 255)):
     # Convert to HLS color space
-    hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
-    # Apply a threshold to the S channel
-    s_channel = hls[:, :, 2]
+    hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+    h = hls[:, :, 0]
+    l = hls[:, :, 1]
+    s = hls[:, :, 2]
     # Return a binary image of threshold result
-    binary_output = np.zeros_like(s_channel)
-    binary_output[(s_channel > thresh[0]) & (s_channel <= thresh[1])] = 1
+    binary_output = np.zeros_like(s)
+    binary_output[(h >= h_thresh[0]) & (h <= h_thresh[1]) & (l >= l_thresh[0]) & (l <= l_thresh[1]) & (s >= s_thresh[0]) & (s <= s_thresh[1])] = 1
     return binary_output
 
 GRADX_THRESH = (20, 120)
@@ -75,8 +74,10 @@ MAG_THRESH = (30, 100)
 MAG_KERNEL = 9
 DIR_THRESH = (0.7, 1.2)
 DIR_KERNEL = 11
-HLS_S_THRESH1 = (200, 245)
-HLS_S_THRESH2 = (110, 140)
+HLS_L_THRESH1 = (200, 255)
+HLS_S_THRESH1 = (130, 255)
+HLS_H_THRESH2 = (10, 40)
+HLS_S_THRESH2 = (120, 160)
 
 def combine(image):
     # Apply each of the thresholding functions
@@ -84,11 +85,11 @@ def combine(image):
     grady = abs_sobel_thresh(image, orient='y', thresh=GRADY_THRESH)
     mag_binary = mag_thresh(image, sobel_kernel=MAG_KERNEL, thresh=MAG_THRESH)
     dir_binary = dir_threshold(image, sobel_kernel=DIR_KERNEL, thresh=DIR_THRESH)
-    hls_binary1 = hls_select_s(image, thresh=HLS_S_THRESH1)
-    hls_binary2 = hls_select_s(image, thresh=HLS_S_THRESH2)
+    hls_white_binary = hls_select(image, l_thresh=HLS_L_THRESH1, s_thresh=HLS_S_THRESH1)
+    hls_yellow_binary = hls_select(image, h_thresh=HLS_H_THRESH2, s_thresh=HLS_S_THRESH2)
 
     combined = np.zeros_like(gradx)
-    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary1 == 1) | (hls_binary2 == 1)] = 1
+    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_white_binary == 1) | (hls_yellow_binary == 1)] = 1
     return combined
 
 

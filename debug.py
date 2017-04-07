@@ -52,12 +52,12 @@ def save_threshold():
             cv2.imwrite(output_dir + "/threshold_dir_{:.2f}_".format(s) + os.path.basename(fname), mask(undist, dir_binary))
 
         for s in range(0, 200, 10):
-            hls_binary = th.hls_select_s(undist, thresh=(s, s + 55))
-            cv2.imwrite(output_dir + "/threshold_hls_s_{}_".format(s) + os.path.basename(fname), mask(undist, hls_binary))
+            hls_binary = th.hls_select(undist, s_thresh=(s, s + 55))
+            cv2.imwrite(output_dir + "/threshold_hls_hs1_{}_".format(s) + os.path.basename(fname), mask(undist, hls_binary))
 
         for s in range(0, 100, 10):
-            hls_binary = th.hls_select_s(undist, thresh=(s, s + 60))
-            cv2.imwrite(output_dir + "/threshold_hls_sr_{}_".format(s) + os.path.basename(fname), mask_r(undist, hls_binary))
+            hls_binary = th.hls_select(undist, s_thresh=(s, s + 60))
+            cv2.imwrite(output_dir + "/threshold_hls_hs2_{}_".format(s) + os.path.basename(fname), mask_r(undist, hls_binary))
 
 
         combined_binary = th.combine(undist)

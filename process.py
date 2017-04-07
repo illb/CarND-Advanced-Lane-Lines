@@ -78,10 +78,10 @@ def save_threshold():
         md_binary[(mag_binary == 1) & (dir_binary == 1)] = 1
         cv2.imwrite(output_dir + '/threshold_magdir_' + os.path.basename(fname), th.bin2gray(md_binary))
 
-        hls_binary1 = th.hls_select_s(undist, thresh=th.HLS_S_THRESH1)
+        hls_binary1 = th.hls_select(undist, l_thresh=th.HLS_L_THRESH1, s_thresh=th.HLS_S_THRESH1)
         cv2.imwrite(output_dir + '/threshold_hls_s_' + os.path.basename(fname), th.bin2gray(hls_binary1))
 
-        hls_binary2 = th.hls_select_s(undist, thresh=th.HLS_S_THRESH2)
+        hls_binary2 = th.hls_select(undist, h_thresh=th.HLS_H_THRESH2, s_thresh=th.HLS_S_THRESH2)
         cv2.imwrite(output_dir + '/threshold_hls_s2_' + os.path.basename(fname), th.bin2gray(hls_binary2))
 
         combined_binary = th.combine(undist)
