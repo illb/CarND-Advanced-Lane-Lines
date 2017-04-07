@@ -96,7 +96,7 @@ class LaneFinder:
         leftx_current = self.leftx_base
         rightx_current = self.rightx_base
         # Set the width of the windows +/- margin
-        margin = 80
+        margin = 100
         # Set minimum number of pixels found to recenter window
         minpix = 40
         # Create empty lists to receive left and right lane pixel indices
@@ -232,31 +232,42 @@ class LaneFinder:
             result = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
 
         self.left_fit = left_fit
-        self.right_fit = left_fit
+        self.right_fit = right_fit
 
         self.left_fitx = left_fitx
         self.right_fitx = right_fitx
         self.ploty = ploty
 
+        self._calcurate_curvature(leftx, lefty, rightx, righty)
+
+        return result
+
+    def _calcurate_curvature(self, leftx, lefty, rightx, righty):
+        w = self.binary_warped.shape[1]
+        h = self.binary_warped.shape[0]
+
+        left_c = self.left_fit[0] * w ** 2 + self.left_fit[1] * w + self.left_fit[2]
+        right_c = self.right_fit[0] * w ** 2 + self.right_fit[1] * w + self.right_fit[2]
+        lane_width = right_c - left_c
+
         # Define conversions in x and y from pixels space to meters
-        ym_per_pix = 30 / 720  # meters per pixel in y dimension
-        xm_per_pix = 3.7 / 700  # meters per pixel in x dimension
+        ym_per_pix = 30 / h  # meters per pixel in y dimension
+        xm_per_pix = 3.7 / lane_width  # meters per pixel in x dimension
 
         # Fit new polynomials to x,y in world space
         left_fit_cr = np.polyfit(lefty * ym_per_pix, leftx * xm_per_pix, 2)
         right_fit_cr = np.polyfit(righty * ym_per_pix, rightx * xm_per_pix, 2)
 
         # Calculate the new radii of curvature
-        y_eval = np.max(ploty)
+        y_eval = np.max(self.ploty)
         self.left_curverad = ((1 + (2 * left_fit_cr[0] * y_eval * ym_per_pix + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
             2 * left_fit_cr[0])
         self.right_curverad = ((1 + (2 * right_fit_cr[0] * y_eval * ym_per_pix + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
             2 * right_fit_cr[0])
 
-        camera_center = (left_fitx[-1] + right_fitx[-1]) / 2
-        self.center_diff = (camera_center - binary_warped.shape[1] / 2) * xm_per_pix
+        camera_center = (self.left_fitx[-1] + self.right_fitx[-1]) / 2
+        self.center_diff = (camera_center - w / 2) * xm_per_pix
 
-        return result
 
     def draw_layer(self, img):
         y = self.ploty.reshape(self.ploty.shape[0], 1)
