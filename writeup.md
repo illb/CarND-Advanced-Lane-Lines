@@ -30,6 +30,7 @@ You're reading it!
 
 ###Source Files
 * debug.py : sandbox for debugging
+* debug_interative_mask.ipynb : sandbox for mask debugging
 * process.py : full pipeline process
 * movie.py : make the output video
 * modules
@@ -77,7 +78,7 @@ To demonstrate this step, I will describe how I apply the distortion correction 
 ![threshold_grady](./output_images/threshold_grady_test3.jpg =300x)
 
 * sobel x and y
-  * `(gradx == 1) & (grady == 1)` (line 91)
+  * `(gradx == 1) & (grady == 1)` (line 92)
 
 ![threshold_gradxy](./output_images/threshold_gradxy_test3.jpg =300x)
 
@@ -96,15 +97,16 @@ To demonstrate this step, I will describe how I apply the distortion correction 
 
 ![threshold_magdir](./output_images/threshold_magdir_test3.jpg =300x)
 
-* thresholds the S-channel of HLS
-  * `hls_select_s` function (lines 62 ~ 70)
+* thresholds of HLS
+  * `hls_select` function (lines 60 ~ 69)
+  * find the white & yellow pixels
 
 ![threshold_hls_s](./output_images/threshold_hls_s_test3.jpg =300x)
 
 ![threshold_hls_s](./output_images/threshold_hls_s2_test3.jpg =300x)
 
 * combined result
-  * `((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_binary1 == 1) | (hls_binary2 == 1)` (line 91)
+  * `combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1)) | (hls_white_binary == 1) | (hls_yellow_binary == 1)] = 1` (line 92)
 
 ![threshold_combined](./output_images/threshold_combined_test3.jpg =300x)
 
@@ -171,17 +173,17 @@ new_histogram = histogram * (left_norm + right_norm)
 * Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
 
 * f(y) = Ay^2 + By + C
-  * `find_step1` function (`lane_find.py` lines 147 ~ 148)
+  * `find_step1` function (`lane_find.py` lines 145 ~ 146)
 
 ![result1](./output_images/result1_test3.jpg =300x)
 
 * Find the line again for the area you just gave the 2nd order polynomial line.
-  * `find_step2` function (`lane_find.py` lines 177 ~ 259)
+  * `find_step2` function in `lane_find.py`
 
 
 ####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines 241 ~ 257 in my code in `lane_find.py`
+I did this in `_calcurate_curvature` function in my code in `lane_find.py`
 
 ####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
